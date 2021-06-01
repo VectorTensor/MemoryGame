@@ -159,7 +159,67 @@ def splitIntoGroupsOf(groupSize, theList):
 
     return result
 
+def leftTopCoordsOfBox(boxx,boxy):
+    #convert board coordinates to pixel coordinates
+    left = boxx *(BOXSIZE + GAPSIZE)+XMARGIN
+    top = boxy*(BOXSIZE + GAPSIZE)+ YMARGIN
+    return (left,top)
 
+def getBoxAtPixel(x,y):
+    for boxx in range(BOARDWIDTH):
+        for boxy in range(BOARDHEIGHT):
+            left, top = leftTopCoordsOfBox(boxx, boxy)
+            boxRect= pygame.Rect(left,top,BOXSIZE, BOXSIZE)
+            if boxRect.collidepoint(x,y):
+                return (boxx,boxy)
+
+    return (None, None)
+    
+def drawIcon(shape,color,boxx,boxy):
+    quarter=int(BOXSIZE*0.25)
+    half = int(BOXSIZE *0.5)
+
+    left, top = leftTopCoordsOfBox(boxx,boxy) # get pixel coordinate from board coordinates
+    # Draw the shapes
+    if shape ==DONUT:
+        pygame.draw.circle(DISPLAYSURF,color,(left + half , top +half),half-5)
+        pygame.draw.circle(DISPLAYSURF,BGCOLOR , (left +half,top +half),quarter-5)
+
+    elif shape ==SQUARE :
+        pygame.draw.rect(DISPLAYSURF,color,(left+quarter,top+quarter,BOXSIZE-half,BOXSIZE - half))
+
+    elif shape == DIAMOND:
+        pygame.draw.polygon(DISPLAYSURF, color,((left +half ,top),(left+BOXSIZE-1,top + half),(left+half,top +BOXSIZE -1),(left,top + half)))
+
+    elif shape == LINES:
+        for i in range(0,BOXSIZE,4):
+            pygame.draw.line(DISPLAYSURF,color,(left,top+i),(left + top))
+            pygame.draw.line(DISPLAYSURF,color,(left+i,top +BOXSIZE -1),(left +BOXSIZE -1,top +i))
+
+    elif shape == OVAL:
+        pygame.draw.ellipse(DISPLAYSURF,color, (left, top + quarter,BOXSIZE,half))
+
+
+def getShapeAndColor(board, boxx,boxy):
+    #shape value for x,y spot is stored in board[x][y][0]
+    #color value for x,y spot is stored in board[x][y][1]
+
+    return board[boxx][boxy][0], board[boxx][boxy][1]
+
+
+def drawBoxCovers(board,boxes, coverage):
+    #Draw boxes being covered/revealed. "boxes " is a list
+    #of two-item lists, which have the x and y spot of the box.
+
+    for box in boxes:
+        left, top =leftTopCoordsOfBox(box[0],box[1])
+        pygame.draw.rect(DISPLAYSURF,BGCOLOR,(left,top,BOXSIZE,BOXSIZE))
+        shape,color = getShapeAndColor(board,box[0],box[1])
+        drawIcon(shape,color,box[0],box[1])
+        if coverage > 0: # only draw the cover if there is an coverage
+            pygame.draw.rect(DISPLAYSURF,BOXCOLOR,(left,top,coverage,BOXSIZE))
+    pygame.display.update()
+    FPSCLOCK.tick(FPS)
 
 
 
